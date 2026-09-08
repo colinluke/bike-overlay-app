@@ -17,9 +17,19 @@ export default function App() {
   const [currentVideoId, setCurrentVideoId] = useState('hOz6M1Y8JgE');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [favorites, setFavorites] = useState([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+
+  // 1. Initialize favorites by reading directly from local storage cache
+  const [favorites, setFavorites] = useState(() => {
+    const cached = localStorage.getItem("bike_HUD_favorites");
+    return cached ? JSON.parse(cached) : [];
+  });
+
+  // 2. Automatically sync to local storage whenever the favorites list changes
+  React.useEffect(() => {
+    localStorage.setItem("bike_HUD_favorites", JSON.stringify(favorites));
+  }, [favorites]);
 
   const triggerSearch = async (queryToUse) => {
     const activeQuery = queryToUse || searchQuery;
@@ -60,7 +70,7 @@ export default function App() {
 
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden', background: '#000', fontFamily: 'system-ui, sans-serif' }}>
-      
+
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'hidden' }}>
         <YouTube videoId={currentVideoId} opts={{ height: '100%', width: '100%', playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0 } }} containerClassName="fullscreen-video-wrapper" iframeClassName="fullscreen-video-iframe" onReady={(e) => e.target.playVideo()} />
       </div>
@@ -68,7 +78,7 @@ export default function App() {
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '4vw', boxSizing: 'border-box', color: '#fff', pointerEvents: 'none' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', pointerEvents: 'auto' }}>
           <div style={{ display: 'flex', gap: '15px', background: 'rgba(0,0,0,0.8)', padding: '15px', borderRadius: '16px', backdropFilter: 'blur(10px)' }}>
-            <select onChange={(e) => { const val = e.target.value; console.log(`Here I am: ${val}`); if(val) { setSearchQuery(val); triggerSearch(val); setIsPanelOpen(true); } }} style={{ padding: '12px', borderRadius: '10px', border: 'none', background: '#222', color: '#fff', fontSize: '1rem', fontWeight: 'bold' }}>
+            <select onChange={(e) => { const val = e.target.value; console.log(`Here I am: ${val}`); if (val) { setSearchQuery(val); triggerSearch(val); setIsPanelOpen(true); } }} style={{ padding: '12px', borderRadius: '10px', border: 'none', background: '#222', color: '#fff', fontSize: '1rem', fontWeight: 'bold' }}>
               {SHORTCUTS.map((sc, i) => <option key={i} value={sc.query}>{sc.label}</option>)}
             </select>
             <button onClick={() => setIsPanelOpen(!isPanelOpen)} style={{ padding: '12px 24px', borderRadius: '10px', border: 'none', background: '#2196f3', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}>🔍 Search Feed</button>
