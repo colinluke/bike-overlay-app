@@ -10,8 +10,22 @@ const SHORTCUTS = [
   { label: '📺 Lo-Fi Beats Studio Feed', query: 'lofi hip hop stream chill beats' }
 ];
 
+const HR_ZONES = [
+  { name: 'ZONE 1', min: 0,   max: 126, color: '#3b82f6' },
+  { name: 'ZONE 2', min: 126, max: 137, color: '#22c55e' },
+  { name: 'ZONE 3', min: 137, max: 148, color: '#eab308' },
+  { name: 'ZONE 4', min: 148, max: 159, color: '#f97316' },
+  { name: 'ZONE 5', min: 159, max: 999, color: '#ef4444' },
+];
+
+function getZone(hr, maxHr) {
+  if (hr <= 0) return null;
+  return HR_ZONES.find(z => hr >= z.min && hr < z.max) || HR_ZONES[HR_ZONES.length - 1];
+}
+
 export default function App() {
   const [heartRate, setHeartRate] = useState(0);
+  const [maxHr, setMaxHr] = useState(190);
   const [bluetoothDevice, setBluetoothDevice] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [currentVideoId, setCurrentVideoId] = useState('hOz6M1Y8JgE');
@@ -68,6 +82,8 @@ export default function App() {
     } catch (e) { console.error(e); } finally { setIsConnecting(false); }
   };
 
+  const zone = getZone(heartRate, maxHr);
+
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden', background: '#000', fontFamily: 'system-ui, sans-serif' }}>
 
@@ -83,10 +99,20 @@ export default function App() {
             </select>
             <button onClick={() => setIsPanelOpen(!isPanelOpen)} style={{ padding: '12px 24px', borderRadius: '10px', border: 'none', background: '#2196f3', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}>🔍 Search Feed</button>
             <button onClick={connectHRM} style={{ padding: '12px 24px', borderRadius: '10px', border: 'none', background: bluetoothDevice ? '#4caf50' : '#e91e63', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}>{bluetoothDevice ? '❤️ HRM Active' : '🔗 Link HRM'}</button>
+            <input type="number" value={maxHr} onChange={e => setMaxHr(Number(e.target.value))} min="100" max="220" style={{ width: '60px', padding: '12px', borderRadius: '10px', border: 'none', background: '#222', color: '#fff', fontSize: '1rem', fontWeight: 'bold', textAlign: 'center' }} title="Max HR" />
           </div>
           <div style={{ textAlign: 'right', textShadow: '2px 2px 10px rgba(0,0,0,0.9)' }}>
-            <div style={{ fontSize: '9rem', fontWeight: '900', lineHeight: 0.8, fontFamily: 'monospace' }}>{heartRate > 0 ? heartRate : '--'}</div>
+            <div style={{ fontSize: '9rem', fontWeight: '900', lineHeight: 0.8, fontFamily: 'monospace', color: zone ? zone.color : '#fff' }}>{heartRate > 0 ? heartRate : '--'}</div>
             <div style={{ fontSize: '1.75rem', fontWeight: 'bold' }}>BPM</div>
+            {zone && <div style={{ fontSize: '1rem', fontWeight: 'bold', letterSpacing: '2px', marginTop: '4px', color: zone.color }}>{zone.name}</div>}
+            <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
+              {HR_ZONES.map(z => {
+                const active = zone === z;
+                return (
+                  <div key={z.name} title={z.name} style={{ width: '16px', height: active ? '28px' : '16px', background: active ? z.color : 'rgba(255,255,255,0.15)', borderRadius: '3px', transition: 'all 0.3s ease' }} />
+                );
+              })}
+            </div>
           </div>
         </div>
 
